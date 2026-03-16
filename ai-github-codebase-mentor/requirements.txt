@@ -1,0 +1,13 @@
+streamlit
+gitpython
+sentence-transformers
+transformers
+torch
+numpy
+tqdm
+python-dotenv
+requests
+pydantic
+openai
+google-generativeai
+google-genai
