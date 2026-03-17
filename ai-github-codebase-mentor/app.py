@@ -1,28 +1,4 @@
-# import streamlit as st
-# from services.pipeline import process_repository
-# from rag.retriever import retrieve_context
-# from rag.generator import generate_answer
 
-# st.title("AI GitHub Codebase Mentor")
-
-# repo_url = st.text_input("Enter GitHub Repository URL")
-
-# if st.button("Analyze Repository"):
-
-#     process_repository(repo_url)
-
-#     st.success("Repository processed successfully")
-
-
-# question = st.text_input("Ask a question about the code")
-
-# if question:
-
-#     context = retrieve_context(question)
-
-#     answer = generate_answer(question, context)
-
-#     st.write(answer)
 
 
 
@@ -30,135 +6,79 @@ import streamlit as st
 from services.pipeline import process_repository
 from rag.retriever import retrieve_context
 from rag.generator import generate_answer
+from vectordb.endee_client import vector_store
 
-# -------------------------------
-# PAGE CONFIG
-# -------------------------------
+st.set_page_config(page_title="AI GitHub Codebase Mentor", page_icon="🤖", layout="wide")
 
-st.set_page_config(
-    page_title="AI GitHub Codebase Mentor",
-    page_icon="🤖",
-    layout="wide"
-)
-
-# -------------------------------
-# TITLE
-# -------------------------------
+if "processed" not in st.session_state:
+    st.session_state.processed = False
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
 st.title("🤖 AI GitHub Codebase Mentor")
 st.write("Analyze any GitHub repository and ask questions about the code.")
 
-# -------------------------------
-# SIDEBAR
-# -------------------------------
-
 with st.sidebar:
-    st.header("Project Info")
-
-    st.write("Pipeline")
-
-    st.write("""
-    1. Clone GitHub Repo
-    2. Extract Code Files
-    3. Chunk Code
-    4. Generate Embeddings
-    5. Store in Vector DB
-    6. Semantic Search
-    7. AI Answer
-    """)
-
+    st.header("📊 Project Info")
+    st.write("### Pipeline")
+    st.write("1. Clone GitHub Repo\n2. Extract Code Files\n3. Chunk Code\n4. Generate Embeddings\n5. Store in Vector DB (Endee / Local)\n6. Semantic Search\n7. AI Answer")
     st.write("---")
-    st.write("Tech Stack")
+    st.write("### Tech Stack")
+    st.write("- Python\n- Streamlit\n- Sentence Transformers\n- Endee Vector DB (with fallback)\n- Gemini API")
+    st.write("---")
+    if st.checkbox("🔍 Show stored embeddings"):
+        st.write(f"Total embeddings: {len(vector_store)}")
+        for i, item in enumerate(vector_store[:5]):
+            meta = item.get("metadata", {}) if isinstance(item, dict) else {}
+            st.code(meta.get("code", "")[:300])
 
-    st.write("""
-    - Python
-    - Streamlit
-    - Sentence Transformers
-    - Endee Vector DB
-    - Gemini API
-    """)
-
-# -------------------------------
-# REPOSITORY INPUT
-# -------------------------------
-
-st.header("Step 1: Analyze Repository")
-
-repo_url = st.text_input(
-    "Enter GitHub Repository URL",
-    placeholder="https://github.com/user/repository"
-)
+st.header("🚀 Step 1: Analyze Repository")
+repo_url = st.text_input("Enter GitHub Repository URL", placeholder="https://github.com/user/repository")
 
 if st.button("Analyze Repository"):
-
-    if repo_url == "":
+    if not repo_url:
         st.warning("Please enter a repository URL")
-
+    elif st.session_state.processed:
+        st.warning("Repository already processed ✅")
     else:
-
         with st.spinner("Cloning and processing repository..."):
-
             result = process_repository(repo_url)
-
-        st.success("Repository processed successfully")
-
+        st.session_state.processed = True
+        st.success("Repository processed successfully 🎉")
         if result:
-
-            st.subheader("Repository Processing Stats")
-
             col1, col2, col3 = st.columns(3)
+            col1.metric("Files", result["files"])
+            col2.metric("Chunks", result["chunks"])
+            col3.metric("Embeddings", result["embeddings"])
 
-            with col1:
-                st.metric("Files Processed", result["files"])
-
-            with col2:
-                st.metric("Code Chunks", result["chunks"])
-
-            with col3:
-                st.metric("Embeddings Created", result["embeddings"])
-
-# -------------------------------
-# QUESTION SECTION
-# -------------------------------
-
-st.header("Step 2: Ask Questions About the Code")
-
-question = st.text_input(
-    "Ask a question",
-    placeholder="What does this repository do?"
-)
+st.header("💬 Step 2: Ask Questions About the Code")
+question = st.text_input("Ask a question", placeholder="What does serializer.py do?")
 
 if question:
-
-    with st.spinner("Searching vector database..."):
-
+    with st.spinner("🔍 Searching vector database..."):
         results = retrieve_context(question)
 
-    st.subheader("Relevant Code Chunks")
-
-    if results:
-
-        for r in results:
-
-            st.code(r["text"], language="python")
-
-    else:
-
+    if not results:
         st.warning("No relevant code found")
+    else:
+        st.subheader("📄 Relevant Code Chunks")
+        for r in results:
+            st.write(f"**File:** {r['file']}")
+            st.code(r['code'], language="python")
 
-    st.subheader("AI Explanation")
+        context = "\n\n".join(r['code'] for r in results)
+        with st.spinner("🤖 Generating answer..."):
+            answer = generate_answer(question, context)
+        st.session_state.chat_history.append((question, answer))
+        st.subheader("🧠 AI Explanation")
+        st.success(answer)
 
-    with st.spinner("Generating answer..."):
-
-        context = "\n".join([r["text"] for r in results])
-
-        answer = generate_answer(question, context)
-
-    st.success(answer)
-
-# -------------------------------
-# FOOTER
-# -------------------------------
+if st.session_state.chat_history:
+    st.header("🗂️ Chat History")
+    for q, a in reversed(st.session_state.chat_history):
+        st.markdown(f"**🧑 You:** {q}")
+        st.markdown(f"**🤖 AI:** {a}")
+        st.write("---")
 
 st.write("---")
-st.write("Built with RAG + Vector Search")
+st.caption("Built with ❤️ using RAG + Vector Search + Gemini")
