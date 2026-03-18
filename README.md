@@ -161,6 +161,16 @@ Immediate insert after index creation caused failures.
 **Solution:**  
 - Introduced controlled delay  
 - Added index existence validation  
+---
+
+
+## 👨‍💻 Author: Saravanan S
+**Full Stack AI Engineer** Dedicated to building scalable, LLM-integrated developer tools.
+
+🔗 [**Portfolio**](https://saravanan-s.vercel.app/)  
+🔗 [**LinkedIn**](https://www.linkedin.com/in/saravanan-suresh/)  
+🔗 [**GitHub**](https://github.com/Saravana20-S)
+
 
 ---
 
@@ -219,16 +229,6 @@ Fine-tuned code LLM integration
 
 Streaming responses
 
-👨‍💻 Author
-
-Saravanan S
-Full Stack AI Engineer
-
-🌐 Portfolio: https://saravanan-s.vercel.app/
-
-💼 LinkedIn: https://www.linkedin.com/in/saravanan-suresh/
-
-🧑‍💻 GitHub: https://github.com/Saravana20-S
 
 ⭐ Final Note
 

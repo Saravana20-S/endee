@@ -88,5 +88,3 @@ I chose **Endee Vector DB** over cloud-based alternatives to provide a productio
 🔗 [**LinkedIn**](https://www.linkedin.com/in/saravanan-suresh/)  
 🔗 [**GitHub**](https://github.com/Saravana20-S)
 
----
-*Developed for evaluation and demonstration of advanced RAG pipeline orchestration.*
