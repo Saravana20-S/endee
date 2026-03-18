@@ -1,33 +1,33 @@
 
 
+
+
+# ingestion/extract_files.py
 import os
 
-SUPPORTED_EXTENSIONS = [".py", ".js", ".java", ".html", ".css"]
+# Define extensions we want to index (feel free to add more)
+ALLOWED_EXTENSIONS = {'.py', '.js', '.ts', '.java', '.cpp', '.c', '.go', '.md'}
 
-def extract_code_files(repo_path):
-
-    files = []
-
-    for root, dirs, filenames in os.walk(repo_path):
-
-        for filename in filenames:
-
-            if any(filename.endswith(ext) for ext in SUPPORTED_EXTENSIONS):
-
-                filepath = os.path.join(root, filename)
-
+def get_code_files(repo_path):
+    """Walks through the repo and collects paths of source code files."""
+    code_contents = []
+    
+    for root, dirs, files in os.walk(repo_path):
+        # Skip hidden directories like .git
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        
+        for file in files:
+            if any(file.endswith(ext) for ext in ALLOWED_EXTENSIONS):
+                file_path = os.path.join(root, file)
                 try:
-                    with open(filepath, "r", encoding="utf-8") as f:
+                    with open(file_path, 'r', encoding='utf-8') as f:
                         content = f.read()
-
-                    files.append({
-                        "path": filepath,
-                        "content": content
-                    })
-
-                except Exception:
-                    pass
-
-    print("Files extracted:", len(files))
-
-    return files
+                        if content.strip(): 
+                            code_contents.append({
+                                "file_path": os.path.relpath(file_path, repo_path),
+                                "content": content
+                            })
+                except Exception as e:
+                    print(f"Could not read {file_path}: {e}")
+                    
+    return code_contents

@@ -1,18 +1,26 @@
+
+
+
+# ingestion/clone_repo.py
 import os
-from git import Repo
-from config.settings import REPO_STORAGE_PATH
+import git
+from config.settings import settings
 
-def clone_repository(repo_url):
+def clone_repository(repo_url: str):
+    """Clones a GitHub repo to the local data directory."""
+    repo_name = repo_url.split("/")[-1].replace(".git", "")
+    target_path = os.path.join(settings.REPO_STORAGE_PATH, repo_name)
+    
+    if os.path.exists(target_path):
+        print(f"Repo {repo_name} already exists at {target_path}. Skipping clone.")
+        return target_path
 
-    if not os.path.exists(REPO_STORAGE_PATH):
-        os.makedirs(REPO_STORAGE_PATH)
+    print(f"Cloning {repo_url} into {target_path}...")
+    git.Repo.clone_from(repo_url, target_path)
+    return target_path
 
-    repo_name = repo_url.split("/")[-1]
-    repo_path = os.path.join(REPO_STORAGE_PATH, repo_name)
 
-    if os.path.exists(repo_path):
-        return repo_path
-
-    Repo.clone_from(repo_url, repo_path)
-
-    return repo_path 
+if __name__ == "__main__":
+    test_url = "https://github.com/psf/requests" 
+    path = clone_repository(test_url)
+    print(f"Verification: Files cloned to {path}")

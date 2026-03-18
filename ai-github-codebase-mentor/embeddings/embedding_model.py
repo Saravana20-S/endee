@@ -1,28 +1,20 @@
 
 
+
+# embeddings/embedding_model.py
 from sentence_transformers import SentenceTransformer
-import json
-import os
+from config.settings import settings
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
+class Embedder:
+    def __init__(self):
+        
+        self.model = SentenceTransformer(settings.EMBEDDING_MODEL_NAME)
 
-def generate_embeddings(chunks):
+    def generate_embeddings(self, text_list):
+        """Converts a list of strings into a list of vectors."""
+        print(f"Generating embeddings for {len(text_list)} chunks...")
+        embeddings = self.model.encode(text_list)
+        
+        return [vec.tolist() for vec in embeddings]
 
-    embeddings = model.encode(chunks).tolist()
-
-    os.makedirs("data/embeddings", exist_ok=True)
-
-    data = []
-
-    for chunk, vector in zip(chunks, embeddings):
-        data.append({
-            "text": chunk,
-            "embedding": vector
-        })
-
-    with open("data/embeddings/embeddings.json", "w") as f:
-        json.dump(data, f)
-
-    print(f"Saved {len(data)} embeddings")
-
-    return embeddings
+embedder = Embedder()
